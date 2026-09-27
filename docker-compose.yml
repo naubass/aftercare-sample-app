@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16
+    container_name: aftercare-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: aftercare
+      POSTGRES_PASSWORD: aftercare
+      POSTGRES_DB: aftercare
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  app:
+      build: .
+      container_name: aftercare-app
+      restart: unless-stopped
+      env_file:
+        - .env
+      volumes:
+        - ./config:/app/config
+      ports:
+        - "3000:3000"
+      depends_on:
+        - db
+        - mock-shipping-api
+
+  mock-shipping-api:
+    build: ./mock-shipping-api
+    container_name: aftercare-mock-shipping-api
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
